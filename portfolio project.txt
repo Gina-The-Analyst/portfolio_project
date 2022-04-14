@@ -1,0 +1,89 @@
+SELECT *
+FROM portfolio_project.covid_d
+ORDER BY location,date;
+
+SELECT *
+FROM portfolio_project.covid_v
+ORDER BY location,date;
+
+SELECT location, date, total_cases, new_cases, total_deaths, population
+FROM portfolio_project.covid_d
+ORDER BY total_cases, new_cases;
+
+SELECT location, date, total_cases, total_deaths, population, (total_deaths/total_cases)*100 AS death_percentage
+FROM portfolio_project.covid_d
+WHERE location like "%af%"
+ORDER BY location, date;
+
+-- total cases vs population
+-- what percentage of population got covid
+SELECT location, date, total_cases, population, (total_cases/population)*100 AS death_percentage
+FROM portfolio_project.covid_d
+-- WHERE location like "%af%"
+ORDER BY location, date;
+ 
+SELECT location, date, total_cases, population, (total_cases/population)*100 AS percent_population_infected
+FROM portfolio_project.covid_d
+WHERE continent is NOT NULL
+ORDER BY location, date;
+
+-- countries with highest infection rate compared to population
+SELECT location, population, MAX(total_cases) AS highest_infection_count, MAX(total_cases/population)*100 AS percent_population_infected
+FROM portfolio_project.covid_d
+-- WHERE location like "%af%"
+GROUP BY population,location
+ORDER BY percent_population_infected DESC;
+
+-- countries with hightest death count per population
+SELECT location, MAX(total_deaths) AS total_d_count
+FROM portfolio_project.covid_d
+WHERE continent is NOT NULL
+GROUP BY location
+ORDER BY total_d_count DESC;
+
+-- break it down by continents
+SELECT location, MAX(total_deaths) AS total_d_count
+FROM portfolio_project.covid_d
+WHERE continent is NOT NULL
+GROUP BY location
+ORDER BY total_d_count DESC;
+
+
+SELECT continent, location, population, date, total_cases,
+CASE
+    WHEN total_cases < 30000 THEN 'fair' 
+    WHEN total_cases BETWEEN 30000 AND 150000 THEN 'bad'
+    ELSE 'worse'
+END AS status
+FROM portfolio_project.covid_d
+WHERE total_cases
+ORDER BY total_cases, location;
+ 
+    or
+
+SELECT continent, location, population, date, total_cases, 'fair' AS status
+FROM portfolio_project.covid_d
+WHERE total_cases < 30000
+UNION
+SELECT continent, location, population, date, total_cases, 'bad' AS status
+FROM portfolio_project.covid_d
+WHERE total_cases BETWEEN 30000 AND 150000
+UNION
+SELECT continent, location, population, date, total_cases, 'worse' AS status
+FROM portfolio_project.covid_d
+WHERE total_cases > 150000
+ORDER BY total_cases, location
+
+
+SELECT cv.location, cd.population, cv.date, cd.total_cases, cd.new_cases 
+FROM portfolio_project.covid_d cd
+JOIN portfolio_project.covid_v cv
+	USING (location, date)
+ORDER BY date, total_cases;
+
+SELECT cv.location, cd.population, cv.date, cd.total_cases, cd.new_cases 
+FROM portfolio_project.covid_d cd
+JOIN portfolio_project.covid_v cv
+	ON cv.location = cd.location
+    AND cv.date = cd.date
+ORDER BY date, total_cases
